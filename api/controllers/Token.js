@@ -68,7 +68,7 @@ const jwt = async(req, res, next)=>{
 }
 
 const status = async (req, res) => {
-    const valid = (req.token && req.token.expires_in > now) ? true : false
+    const valid = (req.token && req.token.expiresIn > now) ? true : false
     res.json({ valid })
   }
 
@@ -81,7 +81,7 @@ const search = async (req, res) => {
         limit: 3
       },
     headers: { 
-        'Authorization': `Bearer ${req.token.access_token}`,
+        'Authorization': `Bearer ${req.token.accessToken}`,
         'Content-Type': 'application/json'
       }
     }).then(({data}) => {
