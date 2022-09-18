@@ -73,7 +73,7 @@ const refreshToken = (refreshToken, grantType, token)=>{
 }
 
 const jwt = async(req, res, next)=>{
-    req.token=await SpotifyToken.findOne({where:{}});
+    //req.token=await SpotifyToken.findOne({where:{}});
 
     if(!req.token && !req.query.code) {return next()};
 
@@ -88,7 +88,7 @@ const jwt = async(req, res, next)=>{
 }
 
 const status = async (req, res) => {
-    const valid = (req.token.expiresIn > now) ? true : false
+    const valid = (req.token && req.token.expiresIn > now) ? true : false
     res.json({valid})
   }
 
