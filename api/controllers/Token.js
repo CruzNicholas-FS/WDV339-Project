@@ -73,7 +73,7 @@ const refreshToken = (refreshToken, grantType, token)=>{
 }
 
 const jwt = async(req, res, next)=>{
-    //req.token=await SpotifyToken.findOne({where:{}});
+    req.token=await SpotifyToken.findOne({where:{}});
 
     if(!req.token && !req.query.code) {return next()};
 
