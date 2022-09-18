@@ -39,18 +39,18 @@ const requestToken = (code, grant_type, token)=>{
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     }).then(({ data }) => {
-      console.log(data);
       data.expires_in = new Date().getTime() + data.expires_in
-      token.accessToken=data.access_token;
-      token.tokenType=data.token_type;
-      token.expiresIn=data.expires_in;
-      token.refreshToken=data.refresh_token
+      token.set({
+        accessToken:data.access_token,
+        tokenType:data.token_type,
+        expiresIn:data.expires_in,
+        refreshToken:data.refresh_token
+      })
       return token.save()
     }).catch((error) => { console.log(error) })
 }
 
 const refreshToken = (refreshToken, grantType, token)=>{
-  console.log("refresh");
   const data= qs.stringify({refresh_token:refreshToken, grant_type:grantType})
   return axios({
     method: 'POST',
@@ -61,12 +61,13 @@ const refreshToken = (refreshToken, grantType, token)=>{
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   }).then(({ data }) => {
-    console.log(data);
     data.expires_in = new Date().getTime() + data.expires_in
-    token.accessToken=data.access_token;
-    token.tokenType=data.token_type;
-    token.expiresIn=data.expires_in;
-    token.refreshToken=data.refresh_token
+    token.set({
+      accessToken:data.access_token,
+      tokenType:data.token_type,
+      expiresIn:data.expires_in,
+      refreshToken:data.refresh_token
+    })
     return token.save()
   }).catch((error) => { console.log(error) })
 }
@@ -92,8 +93,9 @@ const status = async (req, res) => {
   }
 
 const search = async (req, res) => {
-    await fetch('https://api.spotify.com/v1/search',
-    {
+    await axios({
+    method:"GET",
+    url:"https://api.spotify.com/v1/search",
     params: {
         type: 'album,artist,track',
         q: req.query.q,
