@@ -1,11 +1,11 @@
 const express = require('express')
-const spotify = express.Router()
-const spotifyCtrl = require('../controllers/Token')
+const router = express.Router()
+const spotifyController = require('../controllers/Token')
 
-spotify.get('/login', spotifyCtrl.login);
-spotify.get('/auth', spotifyCtrl.jwt, spotifyCtrl.auth);
-spotify.get('/token', spotifyCtrl.jwt, spotifyCtrl.status);
-spotify.get('/status', spotifyCtrl.jwt, spotifyCtrl.status);
-spotify.get('/search', spotifyCtrl.jwt, spotifyCtrl.search);
+router.get('/login', spotifyController.login);
+router.get('/auth', spotifyController.jwt, spotifyController.auth);
+router.get('/token', spotifyController.jwt, spotifyController.status);
+router.get('/status', spotifyController.jwt, spotifyController.status);
+router.get('/search', spotifyController.jwt, spotifyController.search);
 
-module.exports = spotify
+module.exports = router

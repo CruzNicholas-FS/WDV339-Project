@@ -1,5 +1,4 @@
 const {CLIENT_ID, CLIENT_SECRET}=process.env
-const querystring=require("querystring");
 const randomstring=require("randomstring");
 const qs=require("qs");
 const axios = require("axios");
@@ -12,7 +11,7 @@ const now = new Date().getTime()
 const login = async(req, res)=>{
     const state = randomstring.generate(16);
     const scope = 'user-read-private user-read-email';
-    res.redirect(`https://accounts.spotify.com/authorize?${querystring.stringify({
+    res.redirect(`https://accounts.spotify.com/authorize?${qs.stringify({
       response_type: "code",
       client_id: CLIENT_ID,
       scope:scope,
@@ -30,7 +29,7 @@ const auth = async (req, res) => {
 }
 
 const requestToken = (code, grant_type, token)=>{
-    const data = (grant_type==="refresh_token") ? qs.stringify({refresh_token:code, grant_type}) : qs.stringify({code, grant_type, redirect_uri})
+    const data = qs.stringify({code, grant_type, redirect_uri})
     return axios({
       method: 'POST',
       url: 'https://accounts.spotify.com/api/token', 
@@ -41,13 +40,35 @@ const requestToken = (code, grant_type, token)=>{
       }
     }).then(({ data }) => {
       console.log(data);
-      data.expires_in = new Date().getTime() 
+      data.expires_in = new Date().getTime() + data.expires_in
       token.accessToken=data.access_token;
       token.tokenType=data.token_type;
       token.expiresIn=data.expires_in;
       token.refreshToken=data.refresh_token
       return token.save()
-    }).catch((error) => { console.log(error.message) })
+    }).catch((error) => { console.log(error) })
+}
+
+const refreshToken = (refreshToken, grantType, token)=>{
+  console.log("refresh");
+  const data= qs.stringify({refresh_token:refreshToken, grant_type:grantType})
+  return axios({
+    method: 'POST',
+    url: 'https://accounts.spotify.com/api/token', 
+    data,
+    headers: {
+      'Authorization': basicAuth,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }).then(({ data }) => {
+    console.log(data);
+    data.expires_in = new Date().getTime() + data.expires_in
+    token.accessToken=data.access_token;
+    token.tokenType=data.token_type;
+    token.expiresIn=data.expires_in;
+    token.refreshToken=data.refresh_token
+    return token.save()
+  }).catch((error) => { console.log(error) })
 }
 
 const jwt = async(req, res, next)=>{
@@ -57,10 +78,8 @@ const jwt = async(req, res, next)=>{
 
     if(!req.token && req.query.code){
         req.token=await requestToken(req.query.code, "authorization_code", SpotifyToken.build({}))
-        console.log(req.token);
     } else if(now>req.token.expiresIn){
-        req.token=await requestToken(req.token.refreshToken, "refresh_token", req.token)
-        console.log(req.token);
+        req.token=await refreshToken(req.token.refreshToken, "refresh_token", req.token)
     }
 
     if(!req.token){console.log("Token could not be requested")}
@@ -68,8 +87,8 @@ const jwt = async(req, res, next)=>{
 }
 
 const status = async (req, res) => {
-    const valid = (req.token && req.token.expiresIn > now) ? true : false
-    res.json({ valid })
+    const valid = (req.token.expiresIn > now) ? true : false
+    res.json({valid})
   }
 
 const search = async (req, res) => {
